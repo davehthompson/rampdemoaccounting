@@ -1,0 +1,52 @@
+services:
+  # Redis Service
+  - type: redis
+    name: db-monitor-redis
+    ipAllowList: [] # Only allow internal connections
+    plan: starter # Free tier
+
+  # Backend API Service
+  - type: web
+    name: db-monitor-api
+    env: node
+    plan: starter # Free tier
+    buildCommand: cd api && npm install
+    startCommand: cd api && node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: db-monitor-redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true # Auto-generate a secure JWT secret
+      - fromGroup: db-monitor-settings
+
+  # Frontend Web Service
+  - type: web
+    name: db-monitor-webapp
+    env: node
+    plan: starter # Free tier
+    buildCommand: cd webapp && npm install && npm run build
+    startCommand: cd webapp && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: db-monitor-api
+          property: url
+      - fromGroup: db-monitor-settings
+
+# Environment Variable Group
+envVarGroups:
+  - name: db-monitor-settings
+    envVars:
+      - key: API_ENDPOINT
+        sync: false # User needs to set this
+      - key: POLLING_INTERVAL
+        value: "30000"
