@@ -1,146 +1,184 @@
-# Receipt Collector Application
+# SMS Receipt Collector
 
-A Node.js application that automates receipt collection and memo processing via SMS using Twilio. This application allows users to submit receipts and memos through text messages after making a card purchase, streamlining the expense documentation process.
+A Node.js/Express application that automates receipt collection via SMS using Twilio's API. Perfect for expense tracking and receipt management systems that need a simple user interface through text messages.
 
-## 🌟 Features
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen.svg)](https://nodejs.org/)
+[![Express Version](https://img.shields.io/badge/express-%5E4.17.1-blue.svg)](https://expressjs.com/)
+[![Twilio SDK](https://img.shields.io/badge/twilio-latest-red.svg)](https://www.twilio.com/)
 
-- Automated SMS communications using Twilio
-- Receipt image collection and processing
-- Memo collection for expense documentation
-- State management for user interactions
-- Secure webhook endpoints for Twilio integration
-- Local tunnel support for development and testing
+## Overview
 
-## 🔧 Prerequisites
+This application provides a seamless way to collect receipts and memos via SMS after a card transaction. It uses a state machine to manage the flow of user interactions, from card swipe to receipt submission to memo collection.
 
-- Node.js (latest LTS version recommended)
-- npm or yarn package manager
-- Twilio account with:
+## Features
+
+- 📱 SMS-based user interface
+- 📸 Receipt image collection via MMS
+- 📝 Memo collection and storage
+- 🔄 State-based interaction flow
+- 🚀 Local tunnel for development
+- 📊 Real-time state monitoring
+
+## Tech Stack
+
+- Node.js
+- Express.js
+- Twilio API
+- localtunnel
+- axios
+
+## Prerequisites
+
+- Node.js (14.x or higher)
+- npm or yarn
+- Twilio Account
   - Account SID
   - Auth Token
-  - Twilio phone number
-- Internet connection for tunnel functionality
+  - Twilio Phone Number
 
-## 📦 Dependencies
+## Installation
 
-- `express`: Web application framework
-- `body-parser`: Request body parsing middleware
-- `twilio`: Twilio API client
-- `localtunnel`: Exposes local server to the internet
-- `axios`: HTTP client for external requests
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/sms-receipt-collector.git
+cd sms-receipt-collector
+```
 
-## ⚙️ Configuration
-
-1. Clone the repository
 2. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
-```bash
-PORT=3000 (optional, defaults to 3000)
+3. Create a `.env` file in the root directory:
+```env
+PORT=3000
 TWILIO_ACCOUNT_SID=your_account_sid
 TWILIO_AUTH_TOKEN=your_auth_token
 TWILIO_PHONE_NUMBER=your_twilio_number
 ```
 
-## 🚀 Getting Started
+## Configuration
+
+Update the following constants in `server.js`:
+
+```javascript
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+```
+
+## Usage
 
 1. Start the server:
 ```bash
-node server.js
+npm start
 ```
 
-2. The application will:
+2. The server will:
    - Start on the specified port (default: 3000)
-   - Automatically create a tunnel using localtunnel
-   - Display the public URL for configuring Twilio webhooks
+   - Create a tunnel using localtunnel
+   - Display the public URL for Twilio webhook configuration
 
-## 💬 User Flow
+3. Configure your Twilio webhook URL:
+   - Go to your Twilio console
+   - Set the webhook URL to your tunnel URL (e.g., `https://your-subdomain.loca.lt/webhook`)
+   - Set the HTTP method to POST
 
-1. **Card Swipe**: When a user swipes their card, the system initiates the process
-2. **Receipt Request**: User receives SMS requesting receipt image
-3. **Receipt Submission**: User sends receipt image via MMS
-4. **Memo Request**: System requests a memo for the expense
-5. **Memo Submission**: User sends memo text
-6. **Completion**: System confirms completion of the process
+## State Machine
 
-## 🔄 State Management
+The application uses a state machine to manage user interactions:
 
-The application manages user interactions through the following states:
+```javascript
+const STATES = {
+  NEW: "NEW",                    // Initial state
+  AWAITING_RECEIPT: "AWAITING_RECEIPT", // Waiting for receipt image
+  AWAITING_MEMO: "AWAITING_MEMO",    // Waiting for memo text
+  COMPLETE: "COMPLETE"           // Process completed
+};
+```
 
-- `NEW`: Initial state when user starts interaction
-- `AWAITING_RECEIPT`: Waiting for receipt image
-- `AWAITING_MEMO`: Waiting for expense memo
-- `COMPLETE`: Process completed
+### State Flow
 
-## 🔍 API Endpoints
+```mermaid
+graph TD
+    A[NEW] --> B[AWAITING_RECEIPT]
+    B --> |Receipt Received| C[AWAITING_MEMO]
+    C --> |Memo Received| D[COMPLETE]
+    D --> |New Card Swipe| A
+```
 
-- `POST /` or `POST /webhook`: Main Twilio webhook endpoint
-- `GET /test-connection`: Test endpoint for checking server status
-  - Returns current server time and database state
+## API Endpoints
 
-## 🛠️ Development Features
+### POST `/webhook`
+Handles incoming SMS messages from Twilio
 
-- Comprehensive request logging
-- Error handling middleware
-- Support for various content types
-- In-memory database for user state management
-- Automatic tunnel creation for local development
+Request Body:
+```javascript
+{
+  "From": "string",  // Sender's phone number
+  "NumMedia": "string", // Number of media attachments
+  "MediaUrl0": "string" // URL of the first media attachment (if present)
+}
+```
 
-## ⚠️ Security Notes
+### GET `/test-connection`
+Tests server connectivity and displays current state
 
-- Current implementation uses in-memory storage (not suitable for production)
-- Twilio credentials should be properly secured
-- Consider implementing authentication for the test endpoint
+Response:
+```javascript
+{
+  "status": "success",
+  "message": "Server is connected to the internet",
+  "serverTime": "2024-11-25T12:00:00.000Z",
+  "userDatabase": {} // Current state of in-memory database
+}
+```
 
-## 🚧 Production Considerations
+## Development
 
-1. Replace in-memory database with persistent storage
-2. Implement proper authentication and authorization
-3. Add request rate limiting
-4. Set up proper error monitoring and logging
-5. Configure secure environment variable management
-6. Implement backup and recovery procedures
+### Logging
+The application includes comprehensive request logging:
 
-## 📝 Logging
+```javascript
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} request to ${req.url}`);
+  console.log("Headers:", JSON.stringify(req.headers, null, 2));
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+  next();
+});
+```
 
-The application includes detailed logging of:
-- All incoming requests
-- Request headers and body
-- SMS delivery status
-- Error conditions
-- Server startup and tunnel status
+### Error Handling
+Global error handling middleware is implemented:
 
-## 🐛 Troubleshooting
+```javascript
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err.stack);
+  res.status(500).send("Something broke!");
+});
+```
 
-1. **SMS Not Sending**
-   - Verify Twilio credentials
-   - Check phone number format
-   - Review server logs for errors
+## Production Considerations
 
-2. **Webhook Issues**
-   - Ensure tunnel is running
-   - Verify Twilio webhook configuration
-   - Check server logs for request details
+1. Database Implementation
+   - Replace in-memory storage with a persistent database
+   - Consider MongoDB or PostgreSQL
 
-3. **State Management Issues**
-   - Server restart will clear in-memory database
-   - Check current state via test endpoint
+2. Security
+   - Implement authentication
+   - Secure environment variables
+   - Add request rate limiting
+   - Validate webhook signatures
 
-## 🤝 Contributing
+3. Monitoring
+   - Add application monitoring
+   - Implement proper error tracking
+   - Set up alerts for critical failures
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit changes
-4. Push to the branch
-5. Create a Pull Request
+4. Scaling
+   - Implement load balancing
+   - Add caching layer
+   - Consider message queue for SMS processing
 
-## 📄 License
 
-[Add appropriate license information]
 
-## 👥 Contact
-
-[Add contact information]
