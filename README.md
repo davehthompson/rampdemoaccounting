@@ -1,6 +1,6 @@
 # SMS Receipt Collector
 
-A Node.js/Express application that automates receipt collection via SMS using Twilio's API. Perfect for expense tracking and receipt management systems that need a simple user interface through text messages.
+A Node.js/Express application to demonstrate a mobile end user expeirnece with Ramp at point of sale for a transaction.
 
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen.svg)](https://nodejs.org/)
 [![Express Version](https://img.shields.io/badge/express-%5E4.17.1-blue.svg)](https://expressjs.com/)
