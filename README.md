@@ -1,14 +1,10 @@
-# SMS Receipt Collector
+# Ramp SMS Demo Mobile Experience
 
 A Node.js/Express application to demonstrate a mobile end user expeirnece with Ramp at point of sale for a transaction.
 
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen.svg)](https://nodejs.org/)
 [![Express Version](https://img.shields.io/badge/express-%5E4.17.1-blue.svg)](https://expressjs.com/)
 [![Twilio SDK](https://img.shields.io/badge/twilio-latest-red.svg)](https://www.twilio.com/)
-
-## Overview
-
-This application provides a seamless way to collect receipts and memos via SMS after a card transaction. It uses a state machine to manage the flow of user interactions, from card swipe to receipt submission to memo collection.
 
 ## Features
 
@@ -24,7 +20,7 @@ This application provides a seamless way to collect receipts and memos via SMS a
 - Node.js
 - Express.js
 - Twilio API
-- localtunnel
+- ngrok
 - axios
 
 ## Prerequisites
