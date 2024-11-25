@@ -54,7 +54,6 @@ npm install
 PORT=3000
 TWILIO_ACCOUNT_SID=your_account_sid
 TWILIO_AUTH_TOKEN=your_auth_token
-TWILIO_PHONE_NUMBER=your_twilio_number
 ```
 
 ## Configuration
@@ -64,7 +63,6 @@ Update the following constants in `server.js`:
 ```javascript
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 ```
 
 ## Usage
